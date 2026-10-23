@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8" /><title>自检（开发用）</title></head>
+<body><pre id="out">running</pre><script type="module">
+// 在浏览器里用真实画布跑完整流程：加角标、写元数据、读回、确认输出仍能被解码
+import tool from '/src/tool/index.ts';
+import { inspect, minFontPx } from '/src/tool/core.ts';
+const res = [];
+const check = (name, ok, info = '') => res.push(`${ok ? 'PASS' : 'FAIL'} ${name}${info ? ' · ' + info : ''}`);
+const magic = (d) => Array.from(d.slice(0, 4)).map((b) => b.toString(16).padStart(2, '0')).join('');
+async function source(w, h, mime) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'); g.fillStyle = 'rgb(240,200,60)'; g.fillRect(0, 0, w, h);
+  return new Uint8Array(await (await new Promise((r) => c.toBlob(r, mime, 0.9))).arrayBuffer());
+}
+async function pixels(data) {
+  const img = new Image(); img.src = URL.createObjectURL(new Blob([data])); await img.decode();
+  const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+  const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+  return { w: c.width, h: c.height, at: (x, y) => Array.from(g.getImageData(x, y, 1, 1).data) };
+}
+const files = new Map();
+const ctx = (over) => ({
+  params: { ...Object.fromEntries(tool.params.map((f) => [f.key, f.default])), producer: '示例科技有限公司', ...over },
+  outputDir: '/out', signal: new AbortController().signal, progress: () => {},
+  readFile: async (p) => files.get(p), readText: async () => '', writeFile: async (p, d) => void files.set(p, d),
+  writeText: async (p, t) => void files.set(p, new TextEncoder().encode(t)), join: async (...a) => a.join('/'), llm: async () => '', sidecar: async () => '',
+});
+const run = (name, over) => tool.run({ id: name, name, path: '/in/' + name }, ctx(over));
+try {
+  files.set('/in/a.png', await source(1200, 800, 'image/png'));
+  files.set('/in/b.jpg', await source(1000, 1000, 'image/jpeg'));
+  files.set('/in/c.webp', await source(600, 600, 'image/webp'));
+  files.set('/in/d.png', await source(150, 150, 'image/png'));
+
+  // 1. PNG 右下角白字深底
+  let r = await run('a.png', {});
+  let out = files.get('/out/a.png'); let p = await pixels(out); let ins = await inspect(out);
+  check('PNG 输出可解码、尺寸不变', magic(out) === '89504e47' && p.w === 1200 && p.h === 800, `${p.w}x${p.h}`);
+  check('PNG 元数据读回', ins.info?.ContentProducer === '示例科技有限公司' && ins.where.join() === 'XMP,PNG 文字块 AIGC', `${ins.where.join('、')} ${ins.info?.ProduceID}`);
+  const font = Number(/字高 (\d+)/.exec(r.summary)[1]);
+  check('字高 = 短边 7%，不小于最小值', font === 56 && font >= minFontPx(1200, 800), r.summary);
+  check('角标区域变暗、左上角不变', p.at(1200 - 26, 800 - 20 - 42)[0] < 140 && p.at(10, 10).join() === '240,200,60,255', `角标=${p.at(1174, 738)} 左上=${p.at(10, 10)}`);
+
+  // 2. JPG 左上角黑字浅底
+  r = await run('b.jpg', { corner: 'tl', style: 'light', size: 'l' });
+  out = files.get('/out/b.jpg'); p = await pixels(out); ins = await inspect(out);
+  check('JPG 输出可解码、文件头正确', magic(out).startsWith('ffd8ff') && p.w === 1000, `magic=${magic(out)}`);
+  check('JPG XMP 读回', ins.info?.ContentProducer === '示例科技有限公司' && ins.where[0] === 'XMP', ins.info?.ProduceID);
+  check('左上角是浅色底', p.at(32, 100)[2] > 200, `左上=${p.at(32, 100)} ${r.summary}`);
+
+  // 3. JPG 只写隐式标识：像素不变
+  await run('b.jpg', { explicit: false });
+  out = files.get('/out/b.jpg'); p = await pixels(out);
+  const orig = await pixels(files.get('/in/b.jpg'));
+  check('只写元数据时画面不变', p.at(30, 30).join() === orig.at(30, 30).join() && out.length > files.get('/in/b.jpg').length, `${files.get('/in/b.jpg').length}B → ${out.length}B`);
+
+  // 4. WebP → PNG，白字黑边
+  r = await run('c.webp', { style: 'outline' });
+  out = files.get('/out/c.png'); ins = await inspect(out);
+  check('WebP 转 PNG 并写入标识', magic(out) === '89504e47' && !!ins.info, r.summary);
+
+  // 5. 小图 150x150：字高不低于 12 像素
+  r = await run('d.png', { size: 's' });
+  check('小图字高不低于 12 像素', Number(/字高 (\d+)/.exec(r.summary)[1]) >= 12, r.summary);
+
+  // 6. 检查模式
+  r = await tool.run({ id: 'x', name: 'a.png', path: '/out/a.png' }, ctx({ action: 'check' }));
+  check('检查模式读到标识', r.summary.startsWith('有隐式标识：生成方 示例科技有限公司'), r.summary);
+  r = await tool.run({ id: 'y', name: 'a.png', path: '/in/a.png' }, ctx({ action: 'check' }));
+  check('原图没有标识', r.summary === '没有找到 AIGC 隐式标识', r.summary);
+} catch (e) { res.push('FAIL 异常 ' + (e.stack || e)); }
+document.getElementById('out').textContent = res.join('\n');
+// 附上两张输出图，方便肉眼查看角标
+for (const k of ['/out/a.png', '/out/d.png', '/out/c.png']) if (files.get(k)) { const i = new Image(); i.src = URL.createObjectURL(new Blob([files.get(k)])); i.style.cssText = 'max-width:400px;margin:4px;border:1px solid #ccc'; document.body.append(i); }
+</script></body></html>
