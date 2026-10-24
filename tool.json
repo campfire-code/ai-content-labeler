@@ -2,12 +2,13 @@
   "id": "c23",
   "slug": "ai-content-labeler",
   "name": "AI 内容标识器",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "repo": "campfire-code/ai-content-labeler",
   "license": "MIT",
   "ui": {
-    "layout": "a",
-    "palette": "teal"
+    "layout": "d",
+    "palette": "teal",
+    "accent": "#CA2199"
   },
   "upstream": null
 }

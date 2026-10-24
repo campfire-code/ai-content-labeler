@@ -50,7 +50,7 @@ export function readJpegOtherTexts(b: Uint8Array) {
 export function writeJpegXmp(b: Uint8Array, xmp: string) {
   const { segments, bodyStart } = readSegments(b);
   const payload = concat([utf8(XMP_HEADER), utf8(xmp)]);
-  if (payload.length + 2 > 0xffff) throw new Error('XMP 元数据太大，超过 JPG 单段 64KB 的上限，请先用其他软件清理图片里的元数据');
+  if (payload.length + 2 > 0xffff) throw new Error('图片里的元数据太大，超过 JPG 单段 64KB 的上限，请先用其他软件清理图片里的元数据');
   const seg = new Uint8Array(4 + payload.length);
   seg[0] = 0xff; seg[1] = 0xe1; seg[2] = (payload.length + 2) >> 8; seg[3] = (payload.length + 2) & 0xff;
   seg.set(payload, 4);

@@ -1,0 +1,39 @@
+/* AI 内容标识器：空状态示意图 + 结果「标识档案」；只用 kit.css 变量，适配亮暗色 */
+.lb-empty { display: grid; justify-items: center; gap: 14px; padding: 20px; max-width: 580px; margin: auto; text-align: center; font-size: 14px; }
+.lb-empty > svg { width: 100%; max-width: 500px; height: auto; }
+.lb-photo { fill: var(--chip); stroke: var(--line-strong); stroke-width: 1.5; }
+.lb-sun { fill: var(--warn); }
+.lb-hill { fill: var(--primary); opacity: .5; }
+.lb-arrow { fill: none; stroke: var(--primary); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.lb-badge { fill: #1c1f26; opacity: .88; }
+.lb-badge-t { fill: #fff; font-size: 13px; font-weight: 700; }
+.lb-cap { fill: var(--ink); font-size: 13px; font-weight: 600; }
+.lb-cap.muted { fill: var(--muted); }
+.lb-meta rect:first-child { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; }
+.lb-meta rect:not(:first-child) { fill: var(--primary); opacity: .45; }
+.lb-meta-h { fill: var(--primary); font-size: 13px; font-weight: 700; }
+.lb-points { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; width: 100%; max-width: 500px; text-align: left; }
+.lb-points li { display: grid; grid-template-columns: 20px 72px 1fr; align-items: center; gap: 8px; padding: 7px 12px; border-radius: min(var(--radius), 10px); background: var(--chip); }
+.lb-points svg { color: var(--primary); }
+.lb-points span { color: var(--muted); font-size: 13px; }
+.lb-title { margin: 4px 0 0; font-size: 20px; }
+.lb-act { margin: 0; color: var(--muted); font-size: 13px; }
+
+.lb-res { display: grid; grid-template-columns: minmax(130px, .9fr) minmax(0, 1.3fr); gap: 14px; width: 100%; min-width: 0; font-size: 14px; align-items: start; }
+.lb-pic { position: relative; margin: 0; border-radius: var(--radius-lg); overflow: hidden; background: var(--chip); }
+.lb-pic img { display: block; width: 100%; max-height: 300px; object-fit: contain; background: repeating-conic-gradient(var(--chip) 0 25%, var(--surface) 0 50%) 0 0 / 16px 16px; }
+.lb-state { position: absolute; left: 8px; top: 8px; display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--ok-soft); color: var(--ok); }
+.lb-state.warn { background: var(--warn-soft); color: var(--warn); }
+.lb-doc { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid var(--line); border-left: 4px solid var(--primary); border-radius: var(--radius-lg); background: var(--surface); min-width: 0; }
+.lb-doc h4 { margin: 0 0 6px; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.lb-doc p { margin: 0; }
+.lb-badge-line { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.lb-chip { display: inline-block; padding: 2px 10px; border-radius: 6px; background: #1c1f26; color: #fff; font-weight: 700; font-size: 14px; box-shadow: 0 0 0 1px var(--line-strong); }
+.lb-chip.soft { background: var(--primary-soft); color: var(--primary); font-weight: 600; font-size: 13px; border-radius: 999px; }
+.lb-id { font-size: 16px; font-weight: 700; letter-spacing: .01em; word-break: break-all; margin-bottom: 6px; }
+.lb-doc dl { margin: 0; display: grid; gap: 4px; }
+.lb-doc dl > div { display: grid; gap: 1px; }
+.lb-doc dt { color: var(--muted); font-size: 13px; }
+.lb-doc dd { margin: 0; min-width: 0; word-break: break-all; }
+.lb-where { display: flex; flex-wrap: wrap; gap: 6px; }
+@media (max-width: 560px) { .lb-res { grid-template-columns: 1fr; } }

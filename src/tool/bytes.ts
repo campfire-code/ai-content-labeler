@@ -31,7 +31,7 @@ export function latin1(s: string) {
   const out = new Uint8Array(s.length);
   for (let i = 0; i < s.length; i++) {
     const c = s.charCodeAt(i);
-    if (c > 255) throw new Error('内部错误：Latin-1 文本里出现了非 Latin-1 字符');
+    if (c > 255) throw new Error('内部错误：文字里出现了无法写入的字符');
     out[i] = c;
   }
   return out;

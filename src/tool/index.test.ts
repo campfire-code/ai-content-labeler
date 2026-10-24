@@ -106,10 +106,10 @@ describe('检查已有标识 + 导出清单', () => {
     const results: { item: InputItem; result: ItemResult }[] = [];
     for (const n of ['有.png', '无.jpg']) results.push({ item: item(n), result: await tool.run(item(n), ctx) });
     expect(results[0].result.summary).toBe('有隐式标识：生成方 示例科技，内容编号 ID-9（位置：XMP、PNG 文字块 AIGC）');
-    expect(results[1].result.summary).toBe('没有找到 AIGC 隐式标识');
+    expect(results[1].result.summary).toBe('没有找到 AI 生成隐式标识');
     expect([...files.keys()].some((k) => k.startsWith('/out/') && !k.endsWith('.csv'))).toBe(false);
     const path = await tool.exportAll!(results, ctx);
-    expect(path).toBe('/out/AIGC标识检查报告.csv');
+    expect(path).toBe('/out/AI生成标识检查报告.csv');
     const csv = new TextDecoder().decode(files.get(path)!);
     expect(csv).toContain('文件,是否有隐式标识,标识位置,Label,ContentProducer,ProduceID');
     expect(csv).toContain('有.png,有,XMP、PNG 文字块 AIGC,1,示例科技,ID-9');
